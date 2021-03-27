@@ -1,5 +1,5 @@
 {
-    "is_random" : true,
+    "is_random" : false,
     "weight_coefficient" : 0.01,
     "cbc_msg" : false,
     "cbc_maxSeconds" : 100

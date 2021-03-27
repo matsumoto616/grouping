@@ -190,7 +190,7 @@ class Solver:
             if self.z[c] == 1:
                 num_met[i1] += 1
                 num_met[i2] += 1
-        print(num_met)
+        print(f'num_met = {num_met}')
 
         # zの総和出力（大きいほど1回も一緒にならなかった組合せが少ない）
         print(f'z_sum = {self.z.sum()} / {len(self.combi)} (max)')
