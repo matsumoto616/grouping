@@ -1,24 +1,25 @@
 import numpy as np
 import pulp
+import random
 import itertools
 
 # メンバー
 members = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-members = members[:20]
+members = members[:15]  # 人数を適当に... 15~20人ぐらいで回ればOK
 number_of_people = len(members)
 people_indices = list(range(number_of_people))
 combi = list(itertools.combinations(people_indices,2)) # メンバーの組合せ
 
 # グループ
-groups = ['G1','G2','G3','G4']
+groups = ['G1','G2','G3']   # 何班に分けるか
 number_of_group = len(groups)
 group_indices = list(range(number_of_group))
 
 # グループ分け回数
-number_of_times = 4
+number_of_times = 3 # zoomなら40分×3回=2時間程度なので3回か？
 time_indices = list(range(number_of_times))
 
-# グループ毎の人数を決定（できるだけ平均化する，ライブラリとか組込関数とかでもっと綺麗にかけそう...）
+# グループ毎の定員を決定（できるだけ平均化する，ライブラリとか組込関数とかでもっと綺麗にかけそう...）
 group_capacity = np.zeros(number_of_group)
 q, mod = divmod(number_of_people,number_of_group)
 for j in group_indices:
@@ -27,19 +28,31 @@ for j in group_indices:
     else:
         group_capacity[j] = q
 
+
 def main():
+    print('\n##### before optimization (random grouping) #####')
     # z_i：コンビiが一度でも同じグループになったことがあるとき1,そうでないとき0 (これを決定変数としたものがmodel1)
     # 0で初期化
     z0 = np.zeros(len(combi))
     
     # 各班分けごとに最適化し，zを更新していく
     for step in range(number_of_times):
-        z = solve(z0,step)
+        z = gen_group(z0,step,is_random=True)   # 比較用に毎回ランダムで班分け
+        z0 = z 
+
+    print('\n##### After optimization #####')
+    # z_i：コンビiが一度でも同じグループになったことがあるとき1,そうでないとき0 (これを決定変数としたものがmodel1)
+    # 0で初期化
+    z0 = np.zeros(len(combi))
+    
+    # 各班分けごとに最適化し，zを更新していく
+    for step in range(number_of_times):
+        z = gen_group(z0,step,is_random=False)
         z0 = z 
 
 # 心臓部
 # 前回までの班分けによって誰と一緒になったかの情報(z)を既知とし，次回の班分けを決定する
-def solve(z,step):
+def gen_group(z,step,is_random):
 
     #####################################################################################
     ###  線形計画問題インスタンス生成（本問題は0-1整数計画になる）
@@ -101,9 +114,9 @@ def solve(z,step):
     #####################################################################################
     ###  最適化実行
     #####################################################################################
-    # 一回目は辞書的に決定
-    if step == 0:
-        fix_initial_group(x,group_capacity)
+    # 一回目はランダムに決定。is_random=Trueの場合は毎回ランダム（比較用）
+    if step == 0 or is_random:
+        fix_random_group(x,group_capacity)
 
     # 最適化ソルバCBCで最適化実行
     prob.solve(pulp.PULP_CBC_CMD(path=None,
@@ -130,6 +143,16 @@ def solve(z,step):
     gen_output(x,y,z,step)
 
     return z
+
+# 完全にランダムな班分けを行う（1回目の班分けや比較用）
+def fix_random_group(x,group_capacity):
+    res_members = members.copy()
+    for j in group_indices:
+        random_group = random.sample(res_members,k=int(group_capacity[j]))
+        for member in random_group:
+            x[members.index(member)][j].setInitialValue(1)
+            x[members.index(member)][j].fixValue()
+            res_members.remove(member)
 
 # できるだけ色々な人とグループになれるような，目的関数の重みを計算する
 # （主役がいる場合などは，それを最優先に考慮する）←未実装
