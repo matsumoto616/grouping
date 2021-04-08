@@ -1,0 +1,9 @@
+{
+    "members" : [
+        "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O"
+    ],
+    "groups" : [
+        "G1","G2","G3"
+    ],
+    "number_of_steps" : 3   
+}
