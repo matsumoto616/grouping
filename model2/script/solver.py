@@ -16,8 +16,8 @@ def main():
                         type=str)
     args = parser.parse_args()
 
-    # 問題のインポート
-    with open(args.problem_file, 'r') as f:
+    # 問題のインポート(jsonに日本語を入れているのでencodeに注意)
+    with open(args.problem_file, 'r', encoding='utf-8') as f:
         problem = json.load(f)
 
     # 設定のインポート
