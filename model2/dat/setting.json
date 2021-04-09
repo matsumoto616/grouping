@@ -1,6 +1,7 @@
 {
     "is_random" : false,
     "weight_coefficient" : 0.01,
+    "priority_weight_coefficient" : 100,
     "cbc_msg" : false,
     "cbc_maxSeconds" : 100
 }

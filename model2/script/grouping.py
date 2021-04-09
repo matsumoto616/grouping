@@ -11,6 +11,7 @@ class Solver:
 
         # メンバー
         self.members = problem['members']
+        self.priority = problem["priority"]
         self.number_of_people = len(self.members)
         self.people_indices = list(range(self.number_of_people))
         self.combi = list(itertools.combinations(self.people_indices,2)) # メンバーの組合せ（コンビ）
@@ -34,6 +35,8 @@ class Solver:
 
         # ハイパーパラメータ
         self.WEIGHT_COEFFICIENT = setting['weight_coefficient']
+        self.PRIORITY_WEIGHT_COEFFICIENT = setting['priority_weight_coefficient']
+
 
         # CBCオプション
         self.CBC_MSG = setting['cbc_msg']
@@ -165,11 +168,13 @@ class Solver:
                 num_met[i2] += 1
 
         # 最大値との差を重みとする（不遇な人ほど値が大きくなる）
-        weight = num_met.max() - num_met
+        weight_tmp = num_met.max() - num_met
 
         # 重みを極端にすると，不遇な人を優先しすぎる恐れがあるので，気持ち小さく
         # この係数はハイパーパラメータとなる
-        weight *= self.WEIGHT_COEFFICIENT
+        # さらに主役は優先度を高くする(PRIORITY∊{0,1},PRIORITY_WEIGHT_COEFFICIENT:大きい値)
+        weight_tmp2 = [self.WEIGHT_COEFFICIENT + self.priority[i]*self.PRIORITY_WEIGHT_COEFFICIENT for i in range(self.number_of_people)]
+        weight = [i*j for (i,j) in zip(weight_tmp,weight_tmp2)]
 
         return weight
  
